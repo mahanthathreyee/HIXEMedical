@@ -78,6 +78,15 @@ public class CarerRepository {
         return carerDatabase.carerDAO().authorise(carerUsername, carerPassword);
     }
 
+    public Carer getCarer(final int carerID) throws Exception{
+        return new AsyncTask<Void, Void, Carer>(){
+            @Override
+            protected Carer doInBackground(Void... voids) {
+                return carerDatabase.carerDAO().getCarer(carerID);
+            }
+        }.execute().get();
+    }
+
     public void deleteTask(final Carer carer) {
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -93,24 +102,5 @@ public class CarerRepository {
         protected List<Carer> doInBackground(Void... voids) {
             return carerDatabase.carerDAO().fetchAllTasks();
         }
-    }
-
-    public String SHA256(String s) {
-        try {
-            // Create MD5 Hash
-            MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-            digest.update(s.getBytes());
-            byte messageDigest[] = digest.digest();
-
-            // Create Hex String
-            StringBuffer hexString = new StringBuffer();
-            for (int i=0; i<messageDigest.length; i++)
-                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
-            return hexString.toString();
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return "";
     }
 }

@@ -334,7 +334,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mUsername;
         private final String mPassword;
         private final boolean mCarerRadioLogin;
-        private int carerID;
+        private int ID;
 
         UserLoginTask(String username, String password, boolean carerRadioLogin) {
             mUsername = username;
@@ -353,6 +353,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return -1;
             }
 
+            Log.v("DEV LOG", ""+mUsername +"  "+mPassword);
             if(mUsername.equals("admin")&& mPassword.equals("12345") && mCarerRadioLogin)
                 return 0;
             else if(mCarerRadioLogin){
@@ -360,11 +361,23 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 try{
                     Carer temp = carerRepository.authorise(mUsername, mPassword);
                     if(temp != null){
-                        carerID = temp.getId();
+                        ID = temp.getId();
                         return 1;
                     }
                 }catch (Exception e){
-                    Log.v("DEV LOG", "Carer Login DB Error");
+                    e.printStackTrace();
+                }
+            }
+            else if(!mCarerRadioLogin){
+                PatientRepository patientRepository = new PatientRepository(LoginActivity.this);
+                try{
+                    Patient temp = patientRepository.authorise(Integer.parseInt(mUsername), mPassword);
+                    if(temp != null){
+                        ID = temp.getPatientID();
+                        return 2;
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
             return -1;
@@ -384,10 +397,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 intent = new Intent(LoginActivity.this, AdminMenu.class);
                 LoginActivity.this.startActivity(intent);
             } else if(success == 1){
-                editor.putInt("ID", carerID);
+                editor.putInt("ID", ID);
                 editor.putInt("Type", success);
                 editor.apply();
                 intent = new Intent(LoginActivity.this, CarerMenu.class);
+                LoginActivity.this.startActivity(intent);
+            } else if(success == 2){
+                editor.putInt("ID", ID);
+                editor.putInt("Type", success);
+                editor.apply();
+                intent = new Intent(LoginActivity.this, ViewPatientProfile.class);
                 LoginActivity.this.startActivity(intent);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

@@ -17,8 +17,11 @@ public interface CarerDAO {
     @Query("SELECT * FROM Carer")
     List<Carer> fetchAllTasks();
 
-    @Query("SELECT * FROM Carer WHERE id=:carerUsername AND password=:carerPassword LIMIT 1")
+    @Query("SELECT * FROM Carer WHERE username=:carerUsername AND password=:carerPassword")
     Carer authorise(String carerUsername, String carerPassword);
+
+    @Query("SELECT * FROM Carer WHERE id=:carerID")
+    Carer getCarer(int carerID);
 
     @Update
     void updateTask(Carer carer);

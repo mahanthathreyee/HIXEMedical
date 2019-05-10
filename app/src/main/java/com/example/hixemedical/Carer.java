@@ -7,7 +7,7 @@ import android.arch.persistence.room.PrimaryKey;
 
 import java.io.Serializable;
 
-@Entity(indices = {@Index(value = {"username"},
+@Entity(indices = {@Index(value = {"id","username"},
         unique = true)})
 
 public class Carer implements Serializable {

@@ -1,15 +1,12 @@
 package com.example.hixemedical;
 
 import android.app.Activity;
-import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -19,54 +16,49 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ViewSwitcher;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ViewCarers extends AppCompatActivity {
+public class ViewPatient extends AppCompatActivity {
 
-    private List<Carer> carerList = new ArrayList<>();
+    private List<Patient> patientList = new ArrayList<>();
     private RecyclerView recyclerView;
-    private CarerRecyclerAdapter adapter;
-    private CarerRepository carerRepository;
+    private PatientRecyclerAdapter adapter;
+    private PatientRepository patientRepository;
     private int previousSelection = -1;
-    private int switcherFlag = 0;
+    SharedPreferences sharedPreferences;
+    private int carerID;
 
     private MenuItem deleteBtn;
     private MenuItem modifyBtn;
-    private MenuItem modifyDoneBtn;
-    private MenuItem logoutBtn;
-    private ViewSwitcher usernameSwitcher;
-    private ViewSwitcher nameSwitcher;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_carers);
+        setContentView(R.layout.activity_view_patient);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
-        carerRepository = new CarerRepository(getApplicationContext());
-        recyclerView = findViewById(R.id.carerDetailsRecycler);
-        adapter = new CarerRecyclerAdapter(carerList);
+        sharedPreferences = this.getSharedPreferences("UAC", Context.MODE_PRIVATE);
+        carerID = sharedPreferences.getInt("ID", -5);
+
+        if(carerID == -5){
+            startLogout(this);
+            return;
+        }
+
+        patientRepository = new PatientRepository(getApplicationContext());
+        recyclerView = findViewById(R.id.patientDetailsRecycler);
+        adapter = new PatientRecyclerAdapter(patientList);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
-        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(this,
-                recyclerView, new ClickListener() {
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(this, recyclerView, new ClickListener() {
             @Override
-            public void onClick(final View view, final int position) {
-                if(switcherFlag == 1)
-                    return;
+            public void onClick(View view, int position) {
                 if (previousSelection == position) {
                     deleteBtn.setVisible(false);
                     modifyBtn.setVisible(false);
@@ -80,82 +72,58 @@ public class ViewCarers extends AppCompatActivity {
                     deleteBtn.setVisible(true);
                     modifyBtn.setVisible(true);
 
-                    usernameSwitcher = view.findViewById(R.id.recyclerUsernameSwitcher);
-                    nameSwitcher = view.findViewById(R.id.recyclerNameSwitcher);
-
-                    view.setBackgroundColor(ViewCarers.this.getResources().getColor(R.color.colorPrimary));
+                    view.setBackgroundColor(ViewPatient.this.getResources().getColor(R.color.colorPrimary));
                 }
             }
         }));
-        try {
-            carerList.addAll(carerRepository.getAllUsers());
+
+        try{
+            patientList.addAll(patientRepository.getAllPatients(carerID));
         }catch (Exception e){
-            Log.v("DEV LOG", "DB FETCH ERROR");
+            e.printStackTrace();
         }
     }
 
     @Override
+    protected void onResume() {
+        patientList.clear();
+        try{
+            patientList.addAll(patientRepository.getAllPatients(carerID));
+            adapter.notifyItemRangeChanged(previousSelection, patientList.size());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        patientList.clear();
+        try{
+            patientList.addAll(patientRepository.getAllPatients(carerID));
+            adapter.notifyItemRangeChanged(previousSelection, patientList.size());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        super.onRestart();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        EditText tempEdit;
-        TextView tempText;
         switch (item.getItemId()){
             case R.id.logout_menu_item: startLogout(this);  return true;
             case R.id.delete_view_carer:
-                carerRepository.deleteTask(carerList.get(previousSelection));
-                carerList.remove(previousSelection);
+                patientRepository.deleteTask(patientList.get(previousSelection));
+                patientList.remove(previousSelection);
                 recyclerView.removeViewAt(previousSelection);
                 adapter.notifyItemRemoved(previousSelection);
-                adapter.notifyItemRangeChanged(previousSelection, carerList.size());
+                adapter.notifyItemRangeChanged(previousSelection, patientList.size());
                 previousSelection = -1;
                 return true;
-
             case R.id.modify_view_carer:
-                switcherFlag = 1;
-                deleteBtn.setVisible(false);
-                modifyBtn.setVisible(false);
-                logoutBtn.setVisible(false);
-                modifyDoneBtn.setVisible(true);
-
-                tempEdit = usernameSwitcher.findViewById(R.id.recyclerUsernameEdit);
-                tempText = usernameSwitcher.findViewById(R.id.recyclerUsername);
-                tempEdit.setHint(tempText.getText());
-                tempEdit = nameSwitcher.findViewById(R.id.recyclerNameEdit);
-                tempText = nameSwitcher.findViewById(R.id.recyclerName);
-                tempEdit.setHint(tempText.getText());
-
-                usernameSwitcher.showNext();
-                nameSwitcher.showNext();
-                return true;
-
-            case R.id.done_view_carer:
-                modifyDoneBtn.setVisible(false);
-                deleteBtn.setVisible(true);
-                modifyBtn.setVisible(true);
-                logoutBtn.setVisible(true);
-
-                tempEdit = usernameSwitcher.findViewById(R.id.recyclerUsernameEdit);
-                tempText = usernameSwitcher.findViewById(R.id.recyclerUsername);
-                String tempValue = tempEdit.getText().toString();
-                Carer tempCarer = carerList.get(previousSelection);
-                if(!tempValue.equals("")) {
-                    tempCarer.setUsername(tempValue);
-                    tempText.setText(tempEdit.getText());
-                }
-                tempEdit = nameSwitcher.findViewById(R.id.recyclerNameEdit);
-                tempText = nameSwitcher.findViewById(R.id.recyclerName);
-                tempValue = tempEdit.getText().toString();
-                if(!tempValue.equals("")){
-                    tempCarer.setName(tempValue);
-                    tempText.setText(tempEdit.getText());
-                }
-
-                carerRepository.updateTask(tempCarer);
-
-                usernameSwitcher.showPrevious();
-                nameSwitcher.showPrevious();
-
-                switcherFlag = 0;
-
+                Intent intent = new Intent(ViewPatient.this, EditPatient.class);
+                intent.putExtra("PatientID", patientList.get(previousSelection).getPatientID());
+                startActivity(intent);
             default: return super.onOptionsItemSelected(item);
         }
     }
@@ -163,11 +131,8 @@ public class ViewCarers extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.add_carer_menu, menu);
-        modifyDoneBtn = menu.findItem(R.id.done_view_carer);
-        modifyBtn = menu.findItem(R.id.modify_view_carer);
         deleteBtn = menu.findItem(R.id.delete_view_carer);
-        logoutBtn = menu.findItem(R.id.logout_menu_item);
-
+        modifyBtn = menu.findItem(R.id.modify_view_carer);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -179,7 +144,7 @@ public class ViewCarers extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
     }
-    
+
     public interface ClickListener{
         void onClick(View view,int position);
     }
@@ -224,4 +189,5 @@ public class ViewCarers extends AppCompatActivity {
 
         }
     }
+
 }
