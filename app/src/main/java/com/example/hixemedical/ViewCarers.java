@@ -1,15 +1,22 @@
 package com.example.hixemedical;
 
+import android.app.Activity;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -30,10 +37,21 @@ public class ViewCarers extends AppCompatActivity {
     private int previousSelection = -1;
     private int switcherFlag = 0;
 
+    private MenuItem deleteBtn;
+    private MenuItem modifyBtn;
+    private MenuItem modifyDoneBtn;
+    private MenuItem logoutBtn;
+    private ViewSwitcher usernameSwitcher;
+    private ViewSwitcher nameSwitcher;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_carers);
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
 
         carerRepository = new CarerRepository(getApplicationContext());
         recyclerView = findViewById(R.id.carerDetailsRecycler);
@@ -49,89 +67,24 @@ public class ViewCarers extends AppCompatActivity {
             public void onClick(final View view, final int position) {
                 if(switcherFlag == 1)
                     return;
-                final Button deleteBtn = findViewById(R.id.view_carer_delete_btn);
-                final Button modifyBtn = findViewById(R.id.view_carer_modify_btn);
-                final Button modifyDoneBtn = findViewById(R.id.view_carer_modify_done_btn);
-
-                final ViewSwitcher usernameSwitcher = view.findViewById(R.id.recyclerUsernameSwitcher);
-                final ViewSwitcher nameSwitcher = view.findViewById(R.id.recyclerNameSwitcher);
-
+                Log.v("DEV LOG", ""+previousSelection);
                 if (previousSelection == position) {
-                    deleteBtn.setVisibility(View.GONE);
-                    modifyBtn.setVisibility(View.GONE);
-                    view.setBackgroundColor(ViewCarers.this.getResources().getColor(R.color.whiteText));
+                    deleteBtn.setVisible(false);
+                    modifyBtn.setVisible(false);
+                    view.setBackgroundColor(Color.TRANSPARENT);
                     previousSelection = -1;
                 } else {
                     if(previousSelection != -1)
-                        recyclerView.findViewHolderForAdapterPosition(previousSelection).itemView.setBackgroundColor(ViewCarers.this.getResources().getColor(R.color.whiteText));
+                        recyclerView.findViewHolderForAdapterPosition(previousSelection).itemView.setBackgroundColor(Color.TRANSPARENT);
                     previousSelection = position;
-                    deleteBtn.setVisibility(View.VISIBLE);
-                    modifyBtn.setVisibility(View.VISIBLE);
+                    Log.v("DEV LOG", ""+previousSelection);
+                    deleteBtn.setVisible(true);
+                    modifyBtn.setVisible(true);
 
-                    final int tempPosition = position;
-                    deleteBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            carerRepository.deleteTask(carerList.get(tempPosition));
-                            carerList.remove(tempPosition);
-                            recyclerView.removeViewAt(tempPosition);
-                            adapter.notifyItemRemoved(tempPosition);
-                            adapter.notifyItemRangeChanged(position, carerList.size());
-                            previousSelection = -1;
-                        }
-                    });
-                    modifyBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            switcherFlag = 1;
-                            deleteBtn.setVisibility(View.GONE);
-                            modifyBtn.setVisibility(View.GONE);
-                            modifyDoneBtn.setVisibility(View.VISIBLE);
+                    usernameSwitcher = view.findViewById(R.id.recyclerUsernameSwitcher);
+                    nameSwitcher = view.findViewById(R.id.recyclerNameSwitcher);
 
-                            EditText tempEdit = usernameSwitcher.findViewById(R.id.recyclerUsernameEdit);
-                            TextView tempText = usernameSwitcher.findViewById(R.id.recyclerUsername);
-                            tempEdit.setHint(tempText.getText());
-                            tempEdit = nameSwitcher.findViewById(R.id.recyclerNameEdit);
-                            tempText = nameSwitcher.findViewById(R.id.recyclerName);
-                            tempEdit.setHint(tempText.getText());
-
-                            usernameSwitcher.showNext();
-                            nameSwitcher.showNext();
-
-                            modifyDoneBtn.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    modifyDoneBtn.setVisibility(View.GONE);
-                                    deleteBtn.setVisibility(View.VISIBLE);
-                                    modifyBtn.setVisibility(View.VISIBLE);
-
-                                    EditText tempEdit = usernameSwitcher.findViewById(R.id.recyclerUsernameEdit);
-                                    TextView tempText = usernameSwitcher.findViewById(R.id.recyclerUsername);
-                                    String tempValue = tempEdit.getText().toString();
-                                    Carer tempCarer = carerList.get(tempPosition);
-                                    if(!tempValue.equals("")) {
-                                        tempCarer.setUsername(tempValue);
-                                        tempText.setText(tempEdit.getText());
-                                    }
-                                    tempEdit = nameSwitcher.findViewById(R.id.recyclerNameEdit);
-                                    tempText = nameSwitcher.findViewById(R.id.recyclerName);
-                                    tempValue = tempEdit.getText().toString();
-                                    if(!tempValue.equals("")){
-                                        tempCarer.setName(tempValue);
-                                        tempText.setText(tempEdit.getText());
-                                    }
-
-                                    carerRepository.updateTask(tempCarer);
-
-                                    usernameSwitcher.showPrevious();
-                                    nameSwitcher.showPrevious();
-
-                                    switcherFlag = 0;
-                                }
-                            });
-                        }
-                    });
-                    view.setBackgroundColor(ViewCarers.this.getResources().getColor(R.color.design_default_color_primary));
+                    view.setBackgroundColor(ViewCarers.this.getResources().getColor(R.color.colorPrimary));
                 }
             }
         }));
@@ -142,7 +95,93 @@ public class ViewCarers extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        EditText tempEdit;
+        TextView tempText;
+        switch (item.getItemId()){
+            case R.id.logout_menu_item: startLogout(this);  return true;
+            case R.id.delete_view_carer:
+                carerRepository.deleteTask(carerList.get(previousSelection));
+                carerList.remove(previousSelection);
+                recyclerView.removeViewAt(previousSelection);
+                adapter.notifyItemRemoved(previousSelection);
+                adapter.notifyItemRangeChanged(previousSelection, carerList.size());
+                previousSelection = -1;
+                return true;
 
+            case R.id.modify_view_carer:
+                Log.v("DEV LOG", "Modify button pressed");
+                switcherFlag = 1;
+                deleteBtn.setVisible(false);
+                modifyBtn.setVisible(false);
+                logoutBtn.setVisible(false);
+                modifyDoneBtn.setVisible(true);
+
+                tempEdit = usernameSwitcher.findViewById(R.id.recyclerUsernameEdit);
+                tempText = usernameSwitcher.findViewById(R.id.recyclerUsername);
+                tempEdit.setHint(tempText.getText());
+                tempEdit = nameSwitcher.findViewById(R.id.recyclerNameEdit);
+                tempText = nameSwitcher.findViewById(R.id.recyclerName);
+                tempEdit.setHint(tempText.getText());
+
+                usernameSwitcher.showNext();
+                nameSwitcher.showNext();
+                return true;
+
+            case R.id.done_view_carer:
+                modifyDoneBtn.setVisible(false);
+                deleteBtn.setVisible(true);
+                modifyBtn.setVisible(true);
+                logoutBtn.setVisible(true);
+
+                tempEdit = usernameSwitcher.findViewById(R.id.recyclerUsernameEdit);
+                tempText = usernameSwitcher.findViewById(R.id.recyclerUsername);
+                String tempValue = tempEdit.getText().toString();
+                Carer tempCarer = carerList.get(previousSelection);
+                if(!tempValue.equals("")) {
+                    tempCarer.setUsername(tempValue);
+                    tempText.setText(tempEdit.getText());
+                }
+                tempEdit = nameSwitcher.findViewById(R.id.recyclerNameEdit);
+                tempText = nameSwitcher.findViewById(R.id.recyclerName);
+                tempValue = tempEdit.getText().toString();
+                if(!tempValue.equals("")){
+                    tempCarer.setName(tempValue);
+                    tempText.setText(tempEdit.getText());
+                }
+
+                carerRepository.updateTask(tempCarer);
+
+                usernameSwitcher.showPrevious();
+                nameSwitcher.showPrevious();
+
+                switcherFlag = 0;
+
+            default: return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.add_carer_menu, menu);
+        modifyDoneBtn = menu.findItem(R.id.done_view_carer);
+        modifyBtn = menu.findItem(R.id.modify_view_carer);
+        deleteBtn = menu.findItem(R.id.delete_view_carer);
+        logoutBtn = menu.findItem(R.id.logout_menu_item);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private void startLogout(Activity activity){
+        SharedPreferences.Editor editor = activity.getSharedPreferences("UAC", Context.MODE_PRIVATE).edit();
+        editor.remove("ID");
+        editor.remove("Type");
+        editor.apply();
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
+    
     public interface ClickListener{
         void onClick(View view,int position);
     }

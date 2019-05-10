@@ -74,6 +74,10 @@ public class CarerRepository {
         return new getDataAsyncTask().execute().get();
     }
 
+    public Carer authorise(String carerUsername, String carerPassword) throws Exception{
+        return carerDatabase.carerDAO().authorise(carerUsername, carerPassword);
+    }
+
     public void deleteTask(final Carer carer) {
         new AsyncTask<Void, Void, Void>() {
             @Override

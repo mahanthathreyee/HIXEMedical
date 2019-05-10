@@ -3,7 +3,10 @@ package com.example.hixemedical;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -29,6 +32,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -61,20 +65,27 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private UserLoginTask mAuthTask = null;
 
     // UI references.
-    private AutoCompleteTextView mEmailView;
+    private AutoCompleteTextView mUsername;
     private EditText mPasswordView;
+    private RadioButton mCarerLogin;
     private View mProgressView;
     private View mLoginFormView;
 
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        checkLoginStatus(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
 
+        // Set up the login form.
+        mUsername = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
+        mCarerLogin = (RadioButton) findViewById(R.id.carerLogin);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -98,6 +109,39 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkLoginStatus(this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkLoginStatus(this);
+    }
+
+    private void checkLoginStatus(Activity activity){
+        sharedPreferences = activity.getSharedPreferences("UAC", Context.MODE_PRIVATE);
+        int alreadySignedID = sharedPreferences.getInt("ID", -5);
+        if(alreadySignedID != -5){
+            Intent intent;
+            if(alreadySignedID == -1){
+                intent = new Intent(this, AdminMenu.class);
+                startActivity(intent);
+            }
+            else {
+                int accountType = sharedPreferences.getInt("Type", -5);
+                if(accountType != -5){
+                    if(accountType == 1){
+                        intent = new Intent(this, CarerMenu.class);
+                        startActivity(intent);
+                    }
+                }
+            }
+        }
+    }
+
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
@@ -114,7 +158,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             return true;
         }
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
-            Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(mUsername, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
                     .setAction(android.R.string.ok, new View.OnClickListener() {
                         @Override
                         @TargetApi(Build.VERSION_CODES.M)
@@ -153,31 +197,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
         // Reset errors.
-        mEmailView.setError(null);
+        mUsername.setError(null);
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
+        String username = mUsername.getText().toString();
         String password = mPasswordView.getText().toString();
+        boolean carer = mCarerLogin.isChecked();
 
         boolean cancel = false;
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (TextUtils.isEmpty(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
         }
 
         // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
+        if (TextUtils.isEmpty(username)) {
+            mUsername.setError(getString(R.string.error_field_required));
+            focusView = mUsername;
             cancel = true;
         }
 
@@ -189,19 +230,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserLoginTask(username, password, carer);
             mAuthTask.execute((Void) null);
         }
-    }
-
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return true;
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
     }
 
     /**
@@ -280,7 +311,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 new ArrayAdapter<>(LoginActivity.this,
                         android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
 
-        mEmailView.setAdapter(adapter);
+        mUsername.setAdapter(adapter);
     }
 
 
@@ -300,12 +331,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
 
-        private final String mEmail;
+        private final String mUsername;
         private final String mPassword;
+        private final boolean mCarerRadioLogin;
+        private int carerID;
 
-        UserLoginTask(String email, String password) {
-            mEmail = email;
+        UserLoginTask(String username, String password, boolean carerRadioLogin) {
+            mUsername = username;
             mPassword = password;
+            mCarerRadioLogin = carerRadioLogin;
         }
 
         @Override
@@ -319,8 +353,20 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return -1;
             }
 
-            if(mEmail.equals("admin") && mPassword.equals("12345"))
+            if(mUsername.equals("admin")&& mPassword.equals("12345") && mCarerRadioLogin)
                 return 0;
+            else if(mCarerRadioLogin){
+                CarerRepository carerRepository = new CarerRepository(LoginActivity.this);
+                try{
+                    Carer temp = carerRepository.authorise(mUsername, mPassword);
+                    if(temp != null){
+                        carerID = temp.getId();
+                        return 1;
+                    }
+                }catch (Exception e){
+                    Log.v("DEV LOG", "Carer Login DB Error");
+                }
+            }
             return -1;
 
         }
@@ -330,8 +376,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
             Intent intent;
+            editor = LoginActivity.this.getSharedPreferences("UAC", Context.MODE_PRIVATE).edit();
             if (success == 0) {
+                editor.putInt("ID", -1);
+                editor.putInt("Type", success);
+                editor.apply();
                 intent = new Intent(LoginActivity.this, AdminMenu.class);
+                LoginActivity.this.startActivity(intent);
+            } else if(success == 1){
+                editor.putInt("ID", carerID);
+                editor.putInt("Type", success);
+                editor.apply();
+                intent = new Intent(LoginActivity.this, CarerMenu.class);
                 LoginActivity.this.startActivity(intent);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
