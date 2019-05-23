@@ -39,7 +39,10 @@ import java.util.regex.Pattern;
 public class AddCarer extends AppCompatActivity {
 
     private CarerRepository carerRepository;
-    private static int RESULT_LOAD_IMAGE = 1;
+
+    private boolean activitySwitch = false;
+    private MenuItem musicItem = null;
+
 
     boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     String imgPath = "no image selected";
@@ -60,6 +63,7 @@ public class AddCarer extends AppCompatActivity {
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                activitySwitch = true;
                 if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -94,7 +98,10 @@ public class AddCarer extends AppCompatActivity {
                     carer.setName(name);
                     carer.setMale(male.isChecked());
                     carer.setPassword(password);
-                    carer.setPfpImageLoc(imgPath);
+                    if(!imgPath.equals("no image selected"))
+                        carer.setPfpImageLoc(imgPath);
+                    else
+                        carer.setPfpImageLoc("");
 
                     carerRepository = new CarerRepository(getApplicationContext());
                     carerRepository.insertTask(AddCarer.this, carer);
@@ -205,7 +212,8 @@ public class AddCarer extends AppCompatActivity {
                 }
                 else if("com.android.providers.media.documents".equals(uri.getAuthority())) {
                     String docId = DocumentsContract.getDocumentId(uri);
-                    String[] split = docId.split(":");
+                    String[] split
+ = docId.split(":");
                     String type = split[0];
 
                     Uri contentUri = null;
@@ -307,13 +315,46 @@ public class AddCarer extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.logout_menu_item: startLogout(this);  return true;
+            case R.id.backgroundMusic:
+                if(BackGroundMusic.musicServiceToggle(AddCarer.this))
+                    item.setTitle("MUSIC ON");
+                else
+                    item.setTitle("MUSIC OFF");
+                return true;
             default: return super.onOptionsItemSelected(item);
         }
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        activitySwitch = false;
+        updateMusicMenuItem();
+    }
+
+    private void updateMusicMenuItem(){
+        if(musicItem == null)
+            return;
+        if(BackGroundMusic.getMusicStatus())
+            musicItem.setTitle("MUSIC ON");
+        else
+            musicItem.setTitle("MUSIC OFF");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(!activitySwitch && !this.isFinishing())
+            BackGroundMusic.iAmLeaving();
+    }
+
+
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        musicItem = menu.findItem(R.id.backgroundMusic);
+        updateMusicMenuItem();
         return super.onCreateOptionsMenu(menu);
     }
 

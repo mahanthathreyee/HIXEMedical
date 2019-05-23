@@ -5,9 +5,11 @@ import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.database.sqlite.SQLiteConstraintException;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
@@ -51,6 +53,8 @@ public class CarerRepository {
                     tempEditText.setText("");
                     tempEditText = rootView.findViewById(R.id.password);
                     tempEditText.setText("");
+                    ImageView tmpImage = rootView.findViewById(R.id.profile_image);
+                    tmpImage.setImageResource(R.drawable.ic_twotone_add_a_photo_24px);
                 }
 
                 Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);

@@ -5,6 +5,10 @@
         android:id="@+id/logout_menu_item"
         android:title="Logout" />
     <item
+        android:id="@+id/backgroundMusic"
+        app:showAsAction="always"
+        android:title="MUSIC OFF" />
+    <item
         android:id="@+id/modify_view_carer"
         app:showAsAction="always"
         android:visible="false"

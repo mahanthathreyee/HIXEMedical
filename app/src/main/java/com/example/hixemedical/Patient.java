@@ -18,6 +18,7 @@ public class Patient {
     private Boolean isMale;
     private int carerID;
     private String diagnosed;
+    private String pfpImageLoc;
 
     public int getPatientID() {
         return patientID;
@@ -65,5 +66,13 @@ public class Patient {
 
     public void setMale(Boolean male) {
         isMale = male;
+    }
+
+    public String getPfpImageLoc() {
+        return pfpImageLoc;
+    }
+
+    public void setPfpImageLoc(String pfpImageLoc) {
+        this.pfpImageLoc = pfpImageLoc;
     }
 }

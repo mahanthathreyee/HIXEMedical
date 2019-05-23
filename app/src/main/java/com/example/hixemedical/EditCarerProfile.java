@@ -39,6 +39,9 @@ import java.util.regex.Pattern;
 
 public class EditCarerProfile extends AppCompatActivity {
 
+    private boolean activitySwitch = false;
+    private MenuItem musicItem = null;
+
     private CarerRepository carerRepository;
     private Carer carer;
 
@@ -93,6 +96,7 @@ public class EditCarerProfile extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "carer Detail Error", Toast.LENGTH_LONG).show();
             Intent backIntent = new Intent(this, CarerMenu.class);
+            activitySwitch = true;
             startActivity(backIntent);
         }
     }
@@ -122,11 +126,18 @@ public class EditCarerProfile extends AppCompatActivity {
         
         switch (item.getItemId()){
             case R.id.logout_menu_item: startLogout(this);  return true;
+            case R.id.backgroundMusic:
+                if(BackGroundMusic.musicServiceToggle(EditCarerProfile.this))
+                    item.setTitle("MUSIC ON");
+                else
+                    item.setTitle("MUSIC OFF");
+                return true;
             case R.id.modify_edit_profile:
                 profileImage.setClickable(true);
                 profileImage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        activitySwitch = true;
                         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -424,7 +435,32 @@ public class EditCarerProfile extends AppCompatActivity {
         logoutMenuItem = menu.findItem(R.id.logout_menu_item);
         modifyMenuItem = menu.findItem(R.id.modify_edit_profile);
         doneMenuItem = menu.findItem(R.id.done_edit_profile);
+        musicItem = menu.findItem(R.id.backgroundMusic);
+        updateMusicMenuItem();
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        activitySwitch = false;
+        updateMusicMenuItem();
+    }
+
+    private void updateMusicMenuItem(){
+        if(musicItem == null)
+            return;
+        if(BackGroundMusic.getMusicStatus())
+            musicItem.setTitle("MUSIC ON");
+        else
+            musicItem.setTitle("MUSIC OFF");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(!activitySwitch && !this.isFinishing())
+            BackGroundMusic.iAmLeaving();
     }
 
     private void startLogout(Activity activity){

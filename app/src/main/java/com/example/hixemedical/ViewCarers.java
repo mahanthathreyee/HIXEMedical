@@ -49,6 +49,9 @@ import java.util.regex.Pattern;
 
 public class ViewCarers extends AppCompatActivity {
 
+    private boolean activitySwitch = false;
+    private MenuItem musicItem = null;
+
     private List<Carer> carerList = new ArrayList<>();
     private RecyclerView recyclerView;
     private CarerRecyclerAdapter adapter;
@@ -123,6 +126,12 @@ public class ViewCarers extends AppCompatActivity {
         TextView tempText;
         switch (item.getItemId()){
             case R.id.logout_menu_item: startLogout(this);  return true;
+            case R.id.backgroundMusic:
+                if(BackGroundMusic.musicServiceToggle(ViewCarers.this))
+                    item.setTitle("MUSIC ON");
+                else
+                    item.setTitle("MUSIC OFF");
+                return true;
             case R.id.delete_view_carer:
                 carerRepository.deleteTask(carerList.get(previousSelection));
                 carerList.remove(previousSelection);
@@ -214,9 +223,34 @@ public class ViewCarers extends AppCompatActivity {
         modifyDoneBtn = menu.findItem(R.id.done_view_carer);
         modifyBtn = menu.findItem(R.id.modify_view_carer);
         deleteBtn = menu.findItem(R.id.delete_view_carer);
-        logoutBtn = menu.findItem(R.id.logout_menu_item);
+        logoutBtn = menu.findItem(R.id.logout_menu_item);;
+        musicItem = menu.findItem(R.id.backgroundMusic);
+        updateMusicMenuItem();
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        activitySwitch = false;
+        updateMusicMenuItem();
+    }
+
+    private void updateMusicMenuItem(){
+        if(musicItem == null)
+            return;
+        if(BackGroundMusic.getMusicStatus())
+            musicItem.setTitle("MUSIC ON");
+        else
+            musicItem.setTitle("MUSIC OFF");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(!activitySwitch && !this.isFinishing())
+            BackGroundMusic.iAmLeaving();
     }
 
     private void startLogout(Activity activity){

@@ -14,6 +14,9 @@ import android.widget.Button;
 
 public class CarerMenu extends AppCompatActivity {
 
+    private boolean activitySwitch = false;
+    private MenuItem musicItem = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +33,7 @@ public class CarerMenu extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(CarerMenu.this, AddPatient.class);
+                activitySwitch = true;
                 startActivity(intent);
             }
         });
@@ -37,6 +41,7 @@ public class CarerMenu extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(CarerMenu.this, ViewPatient.class);
+                activitySwitch = true;
                 startActivity(intent);
             }
         });
@@ -44,6 +49,7 @@ public class CarerMenu extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(CarerMenu.this, EditCarerProfile.class);
+                activitySwitch = true;
                 startActivity(intent);
             }
         });
@@ -53,13 +59,44 @@ public class CarerMenu extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.logout_menu_item: startLogout(this);  return true;
+            case R.id.backgroundMusic:
+                if(BackGroundMusic.musicServiceToggle(CarerMenu.this))
+                    item.setTitle("MUSIC ON");
+                else
+                    item.setTitle("MUSIC OFF");
+                return true;
             default: return super.onOptionsItemSelected(item);
         }
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        activitySwitch = false;
+        updateMusicMenuItem();
+    }
+
+    private void updateMusicMenuItem(){
+        if(musicItem == null)
+            return;
+        if(BackGroundMusic.getMusicStatus())
+            musicItem.setTitle("MUSIC ON");
+        else
+            musicItem.setTitle("MUSIC OFF");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(!activitySwitch && !this.isFinishing())
+            BackGroundMusic.iAmLeaving();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        musicItem = menu.findItem(R.id.backgroundMusic);
+        updateMusicMenuItem();
         return super.onCreateOptionsMenu(menu);
     }
 
