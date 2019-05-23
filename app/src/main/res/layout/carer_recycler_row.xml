@@ -9,69 +9,85 @@
     android:padding="20dp">
 
     <LinearLayout
-        android:id="@+id/usernameRecyclerLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
+        <ImageView
+            android:id="@+id/profile_image"
+            android:layout_width="100dp"
+            android:layout_height="100dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Username:  "/>
-        <ViewSwitcher
-            android:id="@+id/recyclerUsernameSwitcher"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/recyclerUsername"
+            android:orientation="vertical"
+            android:layout_marginLeft="25dp">
+            <LinearLayout
+                android:id="@+id/usernameRecyclerLinearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            <EditText
-                android:id="@+id/recyclerUsernameEdit"
-                android:textColor="@color/whiteText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </ViewSwitcher>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Username:  "/>
+                <ViewSwitcher
+                    android:id="@+id/recyclerUsernameSwitcher"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/recyclerUsername"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <EditText
+                        android:id="@+id/recyclerUsernameEdit"
+                        android:textColor="@color/whiteText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </ViewSwitcher>
 
+            </LinearLayout>
+            <LinearLayout
+                android:layout_below="@+id/usernameRecyclerLinearLayout"
+                android:id="@+id/nameRecyclerLinearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Name:  "/>
+                <ViewSwitcher
+                    android:id="@+id/recyclerNameSwitcher"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/recyclerName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <EditText
+                        android:id="@+id/recyclerNameEdit"
+                        android:textColor="@color/whiteText"
+                        android:inputType="textCapCharacters"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </ViewSwitcher>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_below="@+id/nameRecyclerLinearLayout"
+                android:id="@+id/genderRecyclerLinearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gender:  "/>
+                <TextView
+                    android:id="@+id/recyclerGender"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-    <LinearLayout
-        android:layout_below="@+id/usernameRecyclerLinearLayout"
-        android:id="@+id/nameRecyclerLinearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Name:  "/>
-        <ViewSwitcher
-            android:id="@+id/recyclerNameSwitcher"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/recyclerName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <EditText
-                android:id="@+id/recyclerNameEdit"
-                android:textColor="@color/whiteText"
-                android:inputType="textCapCharacters"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </ViewSwitcher>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_below="@+id/nameRecyclerLinearLayout"
-        android:id="@+id/genderRecyclerLinearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gender:  "/>
-        <TextView
-            android:id="@+id/recyclerGender"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
+
 </RelativeLayout>

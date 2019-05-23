@@ -21,6 +21,7 @@ public class Carer implements Serializable {
     private String name;
     private boolean isMale;
     private String password;
+    private String pfpImageLoc;
 
     public int getId() {
         return id;
@@ -60,5 +61,13 @@ public class Carer implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPfpImageLoc() {
+        return pfpImageLoc;
+    }
+
+    public void setPfpImageLoc(String pfpImageLoc) {
+        this.pfpImageLoc = pfpImageLoc;
     }
 }
